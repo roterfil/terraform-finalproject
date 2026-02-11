@@ -7,15 +7,11 @@ output "vpc_cidr" {
 }
 
 output "public_subnets" {
-  value = [
-    aws_subnet.pub_1.id,
-    aws_subnet.pub_2.id
-  ]
+  description = "List of public subnet IDs"
+  value       = aws_subnet.public[*].id
 }
 
 output "private_subnets" {
-  value = [
-    aws_subnet.priv_1.id,
-    aws_subnet.priv_2.id
-  ]
+  description = "List of private subnet IDs"
+  value       = aws_subnet.private[*].id
 }

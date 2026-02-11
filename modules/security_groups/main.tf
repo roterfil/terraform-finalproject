@@ -1,12 +1,15 @@
+# 1. Bastion Security Group (SSH Access)
 resource "aws_security_group" "bastion" {
-  name   = "${var.lastname}-${var.project_name}-bastion-sg"
-  vpc_id = var.vpc_id
+  name        = "${var.name_prefix}-bastion-sg"
+  description = "Allow SSH access to bastion host"
+  vpc_id      = var.vpc_id
 
   ingress {
+    description = "SSH from anywhere"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] 
   }
 
   egress {
@@ -16,18 +19,17 @@ resource "aws_security_group" "bastion" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name        = "${var.lastname}-${var.project_name}-bastion-sg"
-    Engineer    = var.engineer_name
-    ProjectCode = var.project_code
-  }
+  tags = merge(var.common_tags, { Name = "${var.name_prefix}-bastion-sg" })
 }
 
+# 2. ALB Security Group (Public Web Access)
 resource "aws_security_group" "alb" {
-  name   = "${var.lastname}-${var.project_name}-alb-sg"
-  vpc_id = var.vpc_id
+  name        = "${var.name_prefix}-alb-sg"
+  description = "Allow public HTTP traffic to ALB"
+  vpc_id      = var.vpc_id
 
   ingress {
+    description = "HTTP from Internet"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -41,18 +43,17 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name        = "${var.lastname}-${var.project_name}-alb-sg"
-    Engineer    = var.engineer_name
-    ProjectCode = var.project_code
-  }
+  tags = merge(var.common_tags, { Name = "${var.name_prefix}-alb-sg" })
 }
 
+# 3. Frontend Security Group (Web Traffic + SSH)
 resource "aws_security_group" "front" {
-  name   = "${var.lastname}-${var.project_name}-frontend-sg"
-  vpc_id = var.vpc_id
+  name        = "${var.name_prefix}-frontend-sg"
+  description = "Security group for frontend servers"
+  vpc_id      = var.vpc_id
 
   ingress {
+    description     = "HTTP from ALB only"
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
@@ -60,6 +61,7 @@ resource "aws_security_group" "front" {
   }
 
   ingress {
+    description     = "SSH from Bastion only"
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
@@ -73,18 +75,17 @@ resource "aws_security_group" "front" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name        = "${var.lastname}-${var.project_name}-frontend-sg"
-    Engineer    = var.engineer_name
-    ProjectCode = var.project_code
-  }
+  tags = merge(var.common_tags, { Name = "${var.name_prefix}-frontend-sg" })
 }
 
+# 4. Backend Security Group (Internal Traffic + SSH)
 resource "aws_security_group" "back" {
-  name   = "${var.lastname}-${var.project_name}-backend-sg"
-  vpc_id = var.vpc_id
+  name        = "${var.name_prefix}-backend-sg"
+  description = "Security group for backend servers"
+  vpc_id      = var.vpc_id
 
   ingress {
+    description = "HTTP from within VPC"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -92,6 +93,7 @@ resource "aws_security_group" "back" {
   }
 
   ingress {
+    description     = "SSH from Bastion only"
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
@@ -105,9 +107,5 @@ resource "aws_security_group" "back" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name        = "${var.lastname}-${var.project_name}-backend-sg"
-    Engineer    = var.engineer_name
-    ProjectCode = var.project_code
-  }
+  tags = merge(var.common_tags, { Name = "${var.name_prefix}-backend-sg" })
 }

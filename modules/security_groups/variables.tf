@@ -1,6 +1,5 @@
-variable "vpc_id" {}
-variable "vpc_cidr" {}
-variable "lastname" {}
-variable "engineer_name" {}
-variable "project_code" {}
-variable "project_name" {}
+variable "vpc_id" { type = string }
+variable "vpc_cidr" { type = string }
+
+variable "name_prefix" { type = string }
+variable "common_tags" { type = map(string) }

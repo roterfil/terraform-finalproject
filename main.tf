@@ -1,29 +1,39 @@
+# 1. Fetch Availability Zones dynamically from AWS
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+# 2. Centralized Naming and Tagging using Locals
+locals {
+  name_prefix = "${var.project_info["lastname"]}-${var.project_info["project_name"]}"
+  
+  common_tags = {
+    Engineer    = var.project_info["engineer_name"]
+    ProjectCode = var.project_info["project_code"]
+    ProjectName = var.project_info["project_name"]
+  }
+}
+
 module "vpc" {
   source = "./modules/vpc"
 
-  vpc_cidr              = var.vpc_cidr
-  public_subnet_1_cidr  = var.public_subnet_1_cidr
-  public_subnet_2_cidr  = var.public_subnet_2_cidr
-  private_subnet_1_cidr = var.private_subnet_1_cidr
-  private_subnet_2_cidr = var.private_subnet_2_cidr
-  az_1                  = var.az_1
-  az_2                  = var.az_2
+  vpc_cidr             = var.vpc_cidr
+  public_subnet_cidrs  = var.public_subnet_cidrs
+  private_subnet_cidrs = var.private_subnet_cidrs
+  # Pass the AZ list from the data source
+  availability_zones   = data.aws_availability_zones.available.names
 
-  lastname      = var.lastname
-  engineer_name = var.engineer_name
-  project_code  = var.project_code
-  project_name  = var.project_name
+  name_prefix = local.name_prefix
+  common_tags = local.common_tags
 }
 
 module "security_groups" {
   source = "./modules/security_groups"
 
-  vpc_id        = module.vpc.vpc_id
-  vpc_cidr      = var.vpc_cidr
-  lastname      = var.lastname
-  engineer_name = var.engineer_name
-  project_code  = var.project_code
-  project_name  = var.project_name
+  vpc_id      = module.vpc.vpc_id
+  vpc_cidr    = module.vpc.vpc_cidr
+  name_prefix = local.name_prefix
+  common_tags = local.common_tags
 }
 
 module "load_balancers" {
@@ -34,10 +44,8 @@ module "load_balancers" {
   private_subnets = module.vpc.private_subnets
   alb_sg_id       = module.security_groups.alb_sg_id
 
-  lastname      = var.lastname
-  engineer_name = var.engineer_name
-  project_code  = var.project_code
-  project_name  = var.project_name
+  name_prefix = local.name_prefix
+  common_tags = local.common_tags
 }
 
 module "compute" {
@@ -58,8 +66,6 @@ module "compute" {
 
   backend_userdata = file("${path.module}/scripts/backend_userdata.sh")
 
-  lastname      = var.lastname
-  engineer_name = var.engineer_name
-  project_code  = var.project_code
-  project_name  = var.project_name
+  name_prefix = local.name_prefix
+  common_tags = local.common_tags
 }
