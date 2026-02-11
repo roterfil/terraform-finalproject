@@ -1,0 +1,13 @@
+aws_region    = "ap-southeast-1"
+lastname      = "Borromeo"
+engineer_name = "Borromeo-Clareene"
+project_code  = "Terraform101-CloudIntern"
+project_name  = "FinalProject"
+
+vpc_cidr              = "10.0.0.0/16"
+public_subnet_1_cidr  = "10.0.1.0/24"
+public_subnet_2_cidr  = "10.0.2.0/24"
+private_subnet_1_cidr = "10.0.3.0/24"
+private_subnet_2_cidr = "10.0.4.0/24"
+az_1                  = "ap-southeast-1a"
+az_2                  = "ap-southeast-1b"
