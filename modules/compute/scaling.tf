@@ -1,14 +1,16 @@
-# Frontend Scaling
+# FRONTEND SCALING
+# Scale Out Policy: Add 1 instance
 resource "aws_autoscaling_policy" "front_out" {
-  name                   = "frontend-scale-out"
-  autoscaling_group_name = aws_autoscaling_group.front_asg.name
+  name                   = "front-scale-out"
+  autoscaling_group_name = aws_autoscaling_group.front.name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = 1
   cooldown               = 60
 }
 
+# High CPU Alarm: >= 40% for 1 minute
 resource "aws_cloudwatch_metric_alarm" "front_high" {
-  alarm_name          = "${var.lastname}-${var.project_name}-frontend-cpu-high"
+  alarm_name          = "${var.name_prefix}-Front-CPU-High"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   metric_name         = "CPUUtilization"
@@ -18,22 +20,24 @@ resource "aws_cloudwatch_metric_alarm" "front_high" {
   threshold           = "40"
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.front_asg.name
+    AutoScalingGroupName = aws_autoscaling_group.front.name
   }
 
   alarm_actions = [aws_autoscaling_policy.front_out.arn]
 }
 
+# Scale In Policy: Remove 1 instance
 resource "aws_autoscaling_policy" "front_in" {
-  name                   = "frontend-scale-in"
-  autoscaling_group_name = aws_autoscaling_group.front_asg.name
+  name                   = "front-scale-in"
+  autoscaling_group_name = aws_autoscaling_group.front.name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = -1
   cooldown               = 60
 }
 
+# Low CPU Alarm: <= 10% for 1 minute
 resource "aws_cloudwatch_metric_alarm" "front_low" {
-  alarm_name          = "${var.lastname}-${var.project_name}-frontend-cpu-low"
+  alarm_name          = "${var.name_prefix}-Front-CPU-Low"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "1"
   metric_name         = "CPUUtilization"
@@ -43,23 +47,26 @@ resource "aws_cloudwatch_metric_alarm" "front_low" {
   threshold           = "10"
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.front_asg.name
+    AutoScalingGroupName = aws_autoscaling_group.front.name
   }
 
   alarm_actions = [aws_autoscaling_policy.front_in.arn]
 }
 
-# Backend Scaling
+# BACKEND SCALING
+
+# Scale Out Policy: Add 1 instance
 resource "aws_autoscaling_policy" "back_out" {
-  name                   = "backend-scale-out"
-  autoscaling_group_name = aws_autoscaling_group.back_asg.name
+  name                   = "back-scale-out"
+  autoscaling_group_name = aws_autoscaling_group.back.name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = 1
   cooldown               = 60
 }
 
+# High CPU Alarm: >= 40% for 1 minute
 resource "aws_cloudwatch_metric_alarm" "back_high" {
-  alarm_name          = "${var.lastname}-${var.project_name}-backend-cpu-high"
+  alarm_name          = "${var.name_prefix}-Back-CPU-High"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   metric_name         = "CPUUtilization"
@@ -69,22 +76,24 @@ resource "aws_cloudwatch_metric_alarm" "back_high" {
   threshold           = "40"
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.back_asg.name
+    AutoScalingGroupName = aws_autoscaling_group.back.name
   }
 
   alarm_actions = [aws_autoscaling_policy.back_out.arn]
 }
 
+# Scale In Policy: Remove 1 instance
 resource "aws_autoscaling_policy" "back_in" {
-  name                   = "backend-scale-in"
-  autoscaling_group_name = aws_autoscaling_group.back_asg.name
+  name                   = "back-scale-in"
+  autoscaling_group_name = aws_autoscaling_group.back.name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = -1
   cooldown               = 60
 }
 
+# Low CPU Alarm: <= 10% for 1 minute
 resource "aws_cloudwatch_metric_alarm" "back_low" {
-  alarm_name          = "${var.lastname}-${var.project_name}-backend-cpu-low"
+  alarm_name          = "${var.name_prefix}-Back-CPU-Low"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "1"
   metric_name         = "CPUUtilization"
@@ -94,7 +103,7 @@ resource "aws_cloudwatch_metric_alarm" "back_low" {
   threshold           = "10"
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.back_asg.name
+    AutoScalingGroupName = aws_autoscaling_group.back.name
   }
 
   alarm_actions = [aws_autoscaling_policy.back_in.arn]

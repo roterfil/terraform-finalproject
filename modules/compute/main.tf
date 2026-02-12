@@ -1,31 +1,28 @@
-# AMI Data Source
+# 1. Fetch Latest Amazon Linux 2023 AMI (Joel's Feedback)
 data "aws_ami" "latest" {
   most_recent = true
   owners      = ["amazon"]
-
   filter {
     name   = "name"
-    values = ["al2023-ami-2023.*-kernel-*-x86_64"]
+    values = ["al2023-ami-2023.*-x86_64"]
   }
 }
 
-# Bastion
+# 2. Bastion Host (t2.micro)
 resource "aws_instance" "bastion" {
-  ami             = data.aws_ami.latest.id
-  instance_type   = "t2.micro"
-  subnet_id       = var.public_subnet_id
-  security_groups = [var.bastion_sg_id]
+  ami                    = data.aws_ami.latest.id
+  instance_type          = "t2.micro"
+  subnet_id              = var.public_subnet_id
+  vpc_security_group_ids = [var.bastion_sg_id]
 
-  tags = {
-    Name        = "${var.lastname}-${var.project_name}-BastionHost"
-    Engineer    = var.engineer_name
-    ProjectCode = var.project_code
-  }
+  tags = merge(var.common_tags, {
+    Name = "${var.name_prefix}-BastionHost"
+  })
 }
 
-# Frontend Launch Template
+# 3. Frontend Launch Template (t3.micro)
 resource "aws_launch_template" "front" {
-  name_prefix   = "frontend-lt"
+  name_prefix   = "front-lt-"
   image_id      = data.aws_ami.latest.id
   instance_type = "t3.micro"
   user_data     = base64encode(var.frontend_userdata)
@@ -37,17 +34,13 @@ resource "aws_launch_template" "front" {
 
   tag_specifications {
     resource_type = "instance"
-    tags = {
-      Name        = "${var.lastname}-${var.project_name}-Frontend"
-      Engineer    = var.engineer_name
-      ProjectCode = var.project_code
-    }
+    tags          = merge(var.common_tags, { Name = "${var.name_prefix}-Frontend" })
   }
 }
 
-# Backend Launch Template
+# 4. Backend Launch Template (t3.micro)
 resource "aws_launch_template" "back" {
-  name_prefix   = "backend-lt"
+  name_prefix   = "back-lt-"
   image_id      = data.aws_ami.latest.id
   instance_type = "t3.micro"
   user_data     = base64encode(var.backend_userdata)
@@ -59,24 +52,19 @@ resource "aws_launch_template" "back" {
 
   tag_specifications {
     resource_type = "instance"
-    tags = {
-      Name        = "${var.lastname}-${var.project_name}-Backend"
-      Engineer    = var.engineer_name
-      ProjectCode = var.project_code
-    }
+    tags          = merge(var.common_tags, { Name = "${var.name_prefix}-Backend" })
   }
 }
 
-# Frontend ASG
-resource "aws_autoscaling_group" "front_asg" {
-  name                      = "${var.lastname}-${var.project_name}-frontend-asg"
-  vpc_zone_identifier       = var.vpc_zone_identifier
-  target_group_arns         = [var.frontend_tg_arn]
-  health_check_type         = "ELB"
-  health_check_grace_period = 300
-  min_size                  = 2
-  max_size                  = 4
-  desired_capacity          = 2
+# 5. Frontend ASG (Min 2, Desired 2, Max 4)
+resource "aws_autoscaling_group" "front" {
+  name                = "${var.name_prefix}-Frontend-ASG"
+  vpc_zone_identifier = var.vpc_zone_identifier
+  target_group_arns   = [var.frontend_tg_arn]
+  health_check_type   = "ELB" # Crucial for LB health replacements
+  min_size            = 2
+  max_size            = 4
+  desired_capacity    = 2
 
   launch_template {
     id      = aws_launch_template.front.id
@@ -84,9 +72,9 @@ resource "aws_autoscaling_group" "front_asg" {
   }
 }
 
-# Backend ASG
-resource "aws_autoscaling_group" "back_asg" {
-  name                = "${var.lastname}-${var.project_name}-backend-asg"
+# 6. Backend ASG (Min 2, Desired 2, Max 4)
+resource "aws_autoscaling_group" "back" {
+  name                = "${var.name_prefix}-Backend-ASG"
   vpc_zone_identifier = var.vpc_zone_identifier
   target_group_arns   = [var.backend_tg_arn]
   health_check_type   = "ELB"
