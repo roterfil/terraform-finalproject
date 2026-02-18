@@ -10,4 +10,12 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+
+  default_tags {
+    tags = {
+      Engineer    = var.project_info["engineer_name"]
+      ProjectCode = var.project_info["project_code"]
+    }
+  }
 }
+

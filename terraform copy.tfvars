@@ -1,7 +1,7 @@
 aws_region = "ap-southeast-1"
 
 project_info = {
-  lastname      = "Borromeo"
+  lastname      = "Borromeo-Production"
   engineer_name = "Borromeo-Clareene"
   project_code  = "Terraform101-CloudIntern"
   project_name  = "FinalProject"

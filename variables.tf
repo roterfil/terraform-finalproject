@@ -4,7 +4,7 @@ variable "aws_region" {
 }
 
 variable "project_info" {
-  type = map(string)
+  type        = map(string)
   description = "Contains lastname, engineer_name, project_code, and project_name"
 }
 

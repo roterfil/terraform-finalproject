@@ -1,4 +1,4 @@
-# 1. Fetch Latest Amazon Linux 2023 AMI (Joel's Feedback)
+# Fetch Latest Amazon Linux 2023 AMI
 data "aws_ami" "latest" {
   most_recent = true
   owners      = ["amazon"]
@@ -8,24 +8,28 @@ data "aws_ami" "latest" {
   }
 }
 
-# 2. Bastion Host (t2.micro)
+# Bastion Host
 resource "aws_instance" "bastion" {
   ami                    = data.aws_ami.latest.id
   instance_type          = "t2.micro"
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [var.bastion_sg_id]
 
-  tags = merge(var.common_tags, {
+  key_name = "Borromeo-Act1-Keypair"
+
+  tags = {
     Name = "${var.name_prefix}-BastionHost"
-  })
+  }
 }
 
-# 3. Frontend Launch Template (t3.micro)
+# Frontend Launch Template
 resource "aws_launch_template" "front" {
   name_prefix   = "front-lt-"
   image_id      = data.aws_ami.latest.id
   instance_type = "t3.micro"
   user_data     = base64encode(var.frontend_userdata)
+
+  key_name = "Borromeo-Act1-Keypair"
 
   network_interfaces {
     associate_public_ip_address = false
@@ -34,16 +38,20 @@ resource "aws_launch_template" "front" {
 
   tag_specifications {
     resource_type = "instance"
-    tags          = merge(var.common_tags, { Name = "${var.name_prefix}-Frontend" })
+    tags = {
+      Name = "${var.name_prefix}-Frontend"
+    }
   }
 }
 
-# 4. Backend Launch Template (t3.micro)
+# Backend Launch Template
 resource "aws_launch_template" "back" {
   name_prefix   = "back-lt-"
   image_id      = data.aws_ami.latest.id
   instance_type = "t3.micro"
   user_data     = base64encode(var.backend_userdata)
+
+  key_name = "Borromeo-Act1-Keypair"
 
   network_interfaces {
     associate_public_ip_address = false
@@ -52,16 +60,18 @@ resource "aws_launch_template" "back" {
 
   tag_specifications {
     resource_type = "instance"
-    tags          = merge(var.common_tags, { Name = "${var.name_prefix}-Backend" })
+    tags = {
+      Name = "${var.name_prefix}-Backend"
+    }
   }
 }
 
-# 5. Frontend ASG (Min 2, Desired 2, Max 4)
+# Frontend ASG
 resource "aws_autoscaling_group" "front" {
   name                = "${var.name_prefix}-Frontend-ASG"
   vpc_zone_identifier = var.vpc_zone_identifier
   target_group_arns   = [var.frontend_tg_arn]
-  health_check_type   = "ELB" # Crucial for LB health replacements
+  health_check_type   = "ELB"
   min_size            = 2
   max_size            = 4
   desired_capacity    = 2
@@ -72,7 +82,7 @@ resource "aws_autoscaling_group" "front" {
   }
 }
 
-# 6. Backend ASG (Min 2, Desired 2, Max 4)
+# Backend ASG
 resource "aws_autoscaling_group" "back" {
   name                = "${var.name_prefix}-Backend-ASG"
   vpc_zone_identifier = var.vpc_zone_identifier

@@ -7,6 +7,4 @@ variable "frontend_tg_arn" { type = string }
 variable "backend_tg_arn" { type = string }
 variable "frontend_userdata" { type = string }
 variable "backend_userdata" { type = string }
-
 variable "name_prefix" { type = string }
-variable "common_tags" { type = map(string) }

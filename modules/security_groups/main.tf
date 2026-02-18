@@ -19,7 +19,9 @@ resource "aws_security_group" "bastion" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.common_tags, { Name = "${var.name_prefix}-Bastion-SG" })
+  tags = {
+    Name = "${var.name_prefix}-Bastion-SG"
+  }
 }
 
 # ALB Security Group (Public HTTP)
@@ -43,7 +45,9 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.common_tags, { Name = "${var.name_prefix}-ALB-SG" })
+  tags = {
+    Name = "${var.name_prefix}-ALB-SG"
+  }
 }
 
 # Frontend Security Group (Web Traffic + Bastion SSH)
@@ -75,7 +79,9 @@ resource "aws_security_group" "front" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.common_tags, { Name = "${var.name_prefix}-Frontend-SG" })
+  tags = {
+    Name = "${var.name_prefix}-Frontend-SG"
+  }
 }
 
 # Backend Security Group (Internal Traffic + Bastion SSH)
@@ -107,5 +113,7 @@ resource "aws_security_group" "back" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.common_tags, { Name = "${var.name_prefix}-Backend-SG" })
+  tags = {
+    Name = "${var.name_prefix}-Backend-SG"
+  }
 }

@@ -6,9 +6,7 @@ resource "aws_s3_bucket" "tf_state" {
   }
 
   tags = {
-    Name        = "Terraform-State-Bucket"
-    Engineer    = "Borromeo-Clareene"
-    ProjectCode = "Terraform101-CloudIntern"
+    Name = "${local.name_prefix}-Terraform-State-Bucket"
   }
 }
 

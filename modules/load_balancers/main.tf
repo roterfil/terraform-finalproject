@@ -6,9 +6,9 @@ resource "aws_lb" "front" {
   security_groups    = [var.alb_sg_id]
   subnets            = var.public_subnets
 
-  tags = merge(var.common_tags, {
+  tags = {
     Name = "${var.name_prefix}-Front-ALB"
-  })
+  }
 }
 
 resource "aws_lb_target_group" "front" {
@@ -44,9 +44,9 @@ resource "aws_lb" "back" {
   load_balancer_type = "network"
   subnets            = var.private_subnets
 
-  tags = merge(var.common_tags, {
+  tags = {
     Name = "${var.name_prefix}-Back-NLB"
-  })
+  }
 }
 
 resource "aws_lb_target_group" "back" {
